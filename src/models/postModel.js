@@ -34,12 +34,11 @@ const postSchema = new mongoose.Schema({
   },
 });
 
-postSchema.pre(/^find/, function (next) {
+postSchema.pre(/^find/, function () {
   try {
     if (!this.getOptions().withDeleted) {
       this.where({ deletedAt: { $eq: null } });
     }
-    next();
   } catch (error) {
     throw error;
   }

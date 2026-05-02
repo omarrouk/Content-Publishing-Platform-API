@@ -18,6 +18,10 @@ exports.protect = async (req, res, next) => {
       throw new Error("user is no longer exists");
     }
 
+    if (user.loggedOutAt && user.loggedOutAt.getTime() / 1000 > decoded.iat) {
+      throw new Error("login and try again");
+    }
+
     req.user = user;
 
     next();
@@ -28,4 +32,16 @@ exports.protect = async (req, res, next) => {
       error: error.message,
     });
   }
+};
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role))
+      return res.status(400).json({
+        status: "failed",
+        message: "not allowed to complete this function",
+      });
+
+    next();
+  };
 };

@@ -55,6 +55,18 @@ const userSchema = new mongoose.Schema({
     enum: ["USER", "ADMIN"],
     default: "USER",
   },
+  loggedOutAt: {
+    type: Date,
+    default: null,
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordTokenExpiredAt: {
+    type: Date,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -67,10 +79,20 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function () {
   try {
-    if (!this.isModified("password")) return next();
+    if (!this.isModified("password")) return;
 
     const hashedPassword = await bcrypt.hash(this.password, 12);
     this.password = hashedPassword;
+  } catch (error) {
+    throw error;
+  }
+});
+
+userSchema.pre(/^find/, function () {
+  try {
+    if (!this.getOptions().withDeleted) {
+      this.where({ deletedAt: { $eq: null } });
+    }
   } catch (error) {
     throw error;
   }
