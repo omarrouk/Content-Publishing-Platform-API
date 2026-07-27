@@ -19,5 +19,11 @@ app.use("/health", (req, res) => {
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/comments", commentRoutes);
+app.use((req, res) => {
+  res.status(404).json({
+    status: "fail",
+    message: "Route Not Found",
+  });
+});
 
 module.exports = app;
