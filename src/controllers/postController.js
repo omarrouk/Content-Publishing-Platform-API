@@ -3,8 +3,9 @@ const Post = require("../models/postModel");
 const Follow = require("../models/followModel");
 const Like = require("../models/likeModel");
 const Comment = require("../models/commentModel");
+const AppError = require("../utils/AppError");
 
-exports.getRandomUsersPosts = async (req, res) => {
+exports.getRandomUsersPosts = async (req, res, next) => {
   try {
     const page = +req.query.page || 1;
     const limit = +req.query.limit || 10;
@@ -27,19 +28,15 @@ exports.getRandomUsersPosts = async (req, res) => {
       posts,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to get posts",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.createPost = async (req, res) => {
+exports.createPost = async (req, res, next) => {
   try {
     const { text } = req.body;
 
-    if (!text) throw new Error("please provide a text of your post");
+    if (!text) throw new AppError("please provide a text of your post", 400);
 
     const publisherId = req.user.id;
 
@@ -56,15 +53,11 @@ exports.createPost = async (req, res) => {
       post,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to create a post",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.getMyFollowingsPosts = async (req, res) => {
+exports.getMyFollowingsPosts = async (req, res, next) => {
   try {
     //TODO get number of likes, number of comments, and comments with the post
     const user = req.user;
@@ -93,21 +86,17 @@ exports.getMyFollowingsPosts = async (req, res) => {
       posts,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to get followings posts",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.editMyPost = async (req, res) => {
+exports.editMyPost = async (req, res, next) => {
   try {
     const postId = req.params?.id;
-    if (!postId) throw new Error("provide post id");
+    if (!postId) throw new AppError("provide post id", 400);
 
     const updatedText = req.body?.text;
-    if (!updatedText) throw new Error("provide the updated post text");
+    if (!updatedText) throw new AppError("provide the updated post text", 400);
 
     const post = await Post.findOneAndUpdate(
       {
@@ -121,7 +110,8 @@ exports.editMyPost = async (req, res) => {
       { returnDocument: "after" },
     );
 
-    if (!post) throw new Error("this user does not have a post with this id");
+    if (!post)
+      throw new AppError("this user does not have a post with this id", 404);
 
     res.status(200).json({
       status: "success",
@@ -129,18 +119,14 @@ exports.editMyPost = async (req, res) => {
       post,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to edit a post",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.deleteMyPost = async (req, res) => {
+exports.deleteMyPost = async (req, res, next) => {
   try {
     const postId = req.params?.id;
-    if (!postId) throw new Error("provide a post id");
+    if (!postId) throw new AppError("provide a post id", 400);
 
     const post = await Post.findOneAndUpdate(
       {
@@ -153,7 +139,8 @@ exports.deleteMyPost = async (req, res) => {
       { returnDocument: "after" },
     );
 
-    if (!post) throw new Error("this user does not have a post with this id");
+    if (!post)
+      throw new AppError("this user does not have a post with this id", 404);
 
     res.status(200).json({
       status: "success",
@@ -161,19 +148,15 @@ exports.deleteMyPost = async (req, res) => {
       post,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to delete a post",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.toggleLike = async (req, res) => {
+exports.toggleLike = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const postId = req.params?.id;
-    if (!postId) throw new Error("provide a post id");
+    if (!postId) throw new AppError("provide a post id", 400);
 
     let like = await Like.findOne({ user: userId, post: postId });
 
@@ -189,21 +172,17 @@ exports.toggleLike = async (req, res) => {
       like,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to delete a post",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.addComment = async (req, res) => {
+exports.addComment = async (req, res, next) => {
   try {
     const postId = req.params?.id;
-    if (!postId) throw new Error("provide post id");
+    if (!postId) throw new AppError("provide post id", 400);
 
     const { text } = req.body;
-    if (!text) throw new Error("provide a comment");
+    if (!text) throw new AppError("provide a comment", 400);
 
     const userId = req.user.id;
 
@@ -219,23 +198,19 @@ exports.addComment = async (req, res) => {
       comment,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to add a comment",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.editMyComment = async (req, res) => {
+exports.editMyComment = async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
     if (!postId || !commentId)
-      throw new Error("post id & comment id are required");
+      throw new AppError("post id & comment id are required", 400);
 
     const updatedText = req.body?.text;
     if (!updatedText)
-      throw new Error("provide the updated comment updatedText");
+      throw new AppError("provide the updated comment updatedText", 400);
 
     const userId = req.user.id;
 
@@ -254,7 +229,8 @@ exports.editMyComment = async (req, res) => {
       },
     );
 
-    if (!comment) throw new Error("no comment found. check the entered data");
+    if (!comment)
+      throw new AppError("no comment found. check the entered data", 404);
 
     res.status(200).json({
       status: "success",
@@ -262,19 +238,15 @@ exports.editMyComment = async (req, res) => {
       comment,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to add a comment",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.deleteMyComment = async (req, res) => {
+exports.deleteMyComment = async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
     if (!postId || !commentId)
-      throw new Error("post id & comment id are required");
+      throw new AppError("post id & comment id are required", 400);
 
     const comment = await Comment.findOneAndUpdate(
       {
@@ -289,8 +261,9 @@ exports.deleteMyComment = async (req, res) => {
     );
 
     if (!comment)
-      throw new Error(
+      throw new AppError(
         "this user does not have a comment with this id on this post",
+        404,
       );
 
     res.status(200).json({
@@ -299,18 +272,14 @@ exports.deleteMyComment = async (req, res) => {
       comment,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to delete a comment",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.deleteUserPost = async (req, res) => {
+exports.deleteUserPost = async (req, res, next) => {
   try {
     const postId = req.params?.postId;
-    if (!postId) throw new Error("provide a valid post id");
+    if (!postId) throw new AppError("provide a valid post id", 400);
 
     const post = await Post.findByIdAndUpdate(
       postId,
@@ -328,10 +297,6 @@ exports.deleteUserPost = async (req, res) => {
       post,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to delete user post",
-      error: error.message,
-    });
+    next(error);
   }
 };

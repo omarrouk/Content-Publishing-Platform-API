@@ -9,9 +9,29 @@ const handleCastErrorDB = (err) => {
 
 // Handles duplicate fields (e.g., MongoDB error code 11000 or Prisma P2002)
 const handleDuplicateFieldsDB = (err) => {
-  // Extracts the duplicate value from the MongoDB error message string
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
-  const message = `Duplicate field value: ${value}. Please use another value!`;
+  let value;
+
+  if (err?.keyValue && typeof err.keyValue === "object") {
+    const [field, fieldValue] = Object.entries(err.keyValue)[0] || [];
+
+    if (field) {
+      value = `${field}: ${fieldValue}`;
+    }
+  }
+
+  if (!value && typeof err?.errmsg === "string") {
+    const match = err.errmsg.match(/(["'])(\\?.)*?\1/);
+    value = match ? match[0] : err.errmsg;
+  }
+
+  if (!value && typeof err?.message === "string") {
+    const match = err.message.match(/(["'])(\\?.)*?\1/);
+    value = match ? match[0] : err.message;
+  }
+
+  const message = value
+    ? `Duplicate field value: ${value}. Please use another value!`
+    : "Duplicate field value found. Please use another value!";
   return new AppError(message, 400);
 };
 

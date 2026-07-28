@@ -27,14 +27,17 @@ const errorHandler = (err, req, res, next) => {
     error.code = err.code;
 
     // 1. Intercept MongoDB/Mongoose Invalid ObjectID
-    if (error.name === "CastError") error = handleCastErrorDB(error);
-
+    if (error.name === "CastError") {
+      error = handleCastErrorDB(error);
+    }
     // 2. Intercept MongoDB Duplicate Key Error (Code 11000)
-    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
-
+    else if (error.code === 11000) {
+      error = handleDuplicateFieldsDB(error);
+    }
     // 3. Intercept Mongoose Schema Validation Errors
-    if (error.name === "ValidationError")
+    else if (error.name === "ValidationError") {
       error = handleValidationErrorDB(error);
+    }
 
     if (error.isOperational) {
       return res.status(error.statusCode).json({

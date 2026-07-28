@@ -3,13 +3,14 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const Follow = require("../models/followModel");
+const AppError = require("../utils/AppError");
 
-exports.getUserById = async (req, res) => {
+exports.getUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
 
     if (!mongoose.isValidObjectId(userId)) {
-      throw new Error("provide a valid Id");
+      throw new AppError("provide a valid Id", 400);
     }
 
     const user = await User.findById(userId).select("-email");
@@ -25,15 +26,11 @@ exports.getUserById = async (req, res) => {
       posts,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to get user",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.updateMyProfile = async (req, res) => {
+exports.updateMyProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const updates = {};
@@ -64,23 +61,19 @@ exports.updateMyProfile = async (req, res) => {
       user,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to update profile",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.followUser = async (req, res) => {
+exports.followUser = async (req, res, next) => {
   try {
     const followingId = req.params?.id;
-    if (!followingId) throw new Error("provide a valid follwing id");
+    if (!followingId) throw new AppError("provide a valid follwing id", 400);
 
     const followerId = req.user.id;
 
     if (followingId === followerId) {
-      throw new Error("can`t follow yourself");
+      throw new AppError("can`t follow yourself", 400);
     }
 
     const follow = await Follow.create({
@@ -94,23 +87,19 @@ exports.followUser = async (req, res) => {
       follow,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to follow user",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.unfollowUser = async (req, res) => {
+exports.unfollowUser = async (req, res, next) => {
   try {
     const followingId = req.params?.id;
-    if (!followingId) throw new Error("provide a valid follwing id");
+    if (!followingId) throw new AppError("provide a valid follwing id", 400);
 
     const followerId = req.user.id;
 
     if (followingId === followerId) {
-      throw new Error("can`t unfollow yourself");
+      throw new AppError("can`t unfollow yourself", 400);
     }
 
     const follow = await Follow.findOneAndDelete({
@@ -124,24 +113,21 @@ exports.unfollowUser = async (req, res) => {
       follow,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to unfollow user",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.changeMyPassword = async (req, res) => {
+exports.changeMyPassword = async (req, res, next) => {
   try {
     const currentPassword = req.body?.currentPassword;
-    if (!currentPassword) throw new Error("enter your current password");
+    if (!currentPassword)
+      throw new AppError("enter your current password", 400);
 
     const newPassword = req.body?.newPassword;
-    if (!newPassword) throw new Error("enter the new password");
+    if (!newPassword) throw new AppError("enter the new password", 400);
 
     if (currentPassword === newPassword)
-      throw new Error("can`t use the same password");
+      throw new AppError("can`t use the same password", 400);
 
     const userId = req.user.id;
     const user = await User.findById(userId).select("+password");
@@ -151,7 +137,8 @@ exports.changeMyPassword = async (req, res) => {
       user.password,
     );
 
-    if (!isCurrentPassword) throw new Error("current password is wrong");
+    if (!isCurrentPassword)
+      throw new AppError("current password is wrong", 401);
 
     user.password = newPassword;
     user.loggedOutAt = Date.now();
@@ -163,22 +150,18 @@ exports.changeMyPassword = async (req, res) => {
       user,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to change your password",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.updateUserRole = async (req, res) => {
+exports.updateUserRole = async (req, res, next) => {
   try {
     const userId = req.params?.userId;
-    if (!userId) throw new Error("provide a valid user id");
+    if (!userId) throw new AppError("provide a valid user id", 400);
 
     const userRole = req.body?.newRole.toUpperCase();
     if (!userRole || !["ADMIN", "USER"].includes(userRole))
-      throw new Error("provide a valid user role");
+      throw new AppError("provide a valid user role", 400);
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -192,18 +175,14 @@ exports.updateUserRole = async (req, res) => {
       user,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to change user role",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-exports.deleteUserAccount = async (req, res) => {
+exports.deleteUserAccount = async (req, res, next) => {
   try {
     const userId = req.params?.id;
-    if (!userId) throw new Error("provide a valid user id");
+    if (!userId) throw new AppError("provide a valid user id", 400);
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -217,10 +196,6 @@ exports.deleteUserAccount = async (req, res) => {
       user,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: "fail",
-      message: "failed to delete the user",
-      error: error.message,
-    });
+    next(error);
   }
 };

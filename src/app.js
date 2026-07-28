@@ -2,6 +2,8 @@ const express = require("express");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const errorHandler = require("./middlewares/errorHandlerMiddlewar");
+const AppError = require("./utils/AppError");
 
 const app = express();
 
@@ -19,11 +21,13 @@ app.use("/health", (req, res) => {
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/comments", commentRoutes);
-app.use((req, res) => {
-  res.status(404).json({
-    status: "fail",
-    message: "Route Not Found",
-  });
+
+// Handle 404 - Route Not Found
+app.use((req, res, next) => {
+  next(new AppError("Route Not Found", 404));
 });
+
+// Global Error Handler Middleware
+app.use(errorHandler);
 
 module.exports = app;
