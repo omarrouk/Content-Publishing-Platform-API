@@ -1,46 +1,75 @@
 const { Router } = require("express");
 const userController = require("../controllers/userController");
 const authController = require("../controllers/authcontroller");
-const multerMiddleware = require("../middlewares/multerMiddleware");
-const authMiddleware = require("../middlewares/authMiddleware");
+const multer = require("../middlewares/multer");
+const auth = require("../middlewares/auth");
+const validate = require("../middlewares/validate");
+const authSchema = require("../schemas/authSchemas");
+const userSchema = require("../schemas/userSchemas");
 
 const router = Router();
 
 router.post(
   "/signup",
-  multerMiddleware.upload.single("profilePhoto"),
+  multer.upload.single("profilePhoto"),
+  validate(authSchema.signupSchema),
   authController.signup,
 );
 
-router.post("/login", authController.login);
+router.post("/login", validate(authSchema.loginSchema), authController.login);
 
-router.post("/logout", authMiddleware.protect, authController.logout);
+router.post("/logout", auth.protect, authController.logout);
 
-router.get("/:id", userController.getUserById);
+router.get(
+  "/:id",
+  validate({ params: userSchema.userIdSchema }),
+  userController.getUserById,
+);
 
-router.post("/forgot-password", authController.forgotMyPassword);
+router.post(
+  "/forgot-password",
+  validate(authSchema.forgotPasswordSchema),
+  authController.forgotMyPassword,
+);
 
-router.post("/reset-password", authController.resetMyPassword);
+router.post(
+  "/reset-password",
+  validate(authSchema.resetPasswordSchema),
+  authController.resetMyPassword,
+);
 
-router.use(authMiddleware.protect);
+router.use(auth.protect);
 
 router.patch(
   "/me",
-  multerMiddleware.upload.single("profilePhoto"),
+  multer.upload.single("profilePhoto"),
+  validate(userSchema.updateProfileSchema),
   userController.updateMyProfile,
 );
 
-router.patch("/me/password", userController.changeMyPassword);
+router.patch(
+  "/me/password",
+  validate({ body: userSchema.changePasswordSchema }),
+  userController.changeMyPassword,
+);
 
 router
   .route("/:id/follow")
-  .post(userController.followUser)
-  .delete(userController.unfollowUser);
+  .post(validate(userSchema.followUserSchema), userController.followUser)
+  .delete(validate(userSchema.followUserSchema), userController.unfollowUser);
 
-router.use(authMiddleware.restrictTo("ADMIN"));
+router.use(auth.restrictTo("ADMIN"));
 
-router.patch("/update-user-role/:id", userController.updateUserRole);
+router.patch(
+  "/update-user-role/:id",
+  validate(userSchema.updateUserRoleSchema),
+  userController.updateUserRole,
+);
 
-router.delete("/delete-user-account/:id", userController.deleteUserAccount);
+router.delete(
+  "/delete-user-account/:id",
+  validate(userSchema.deleteUserAccountSchema),
+  userController.deleteUserAccount,
+);
 
 module.exports = router;

@@ -1,39 +1,58 @@
 const { Router } = require("express");
-const authMiddleWare = require("../middlewares/authMiddleware");
-const multerMiddleware = require("../middlewares/multerMiddleware");
+const auth = require("../middlewares/auth");
+const multer = require("../middlewares/multer");
 const postController = require("../controllers/postController");
+const validate = require("../middlewares/validate");
+const postSchema = require("../schemas/postSchemas");
 
 const router = Router();
 
-router.get("/", postController.getRandomUsersPosts);
+router.get(
+  "/",
+  validate({ query: postSchema.getPostsQuerySchema }),
+  postController.getRandomUsersPosts,
+);
 
-router.use(authMiddleWare.protect);
+router.use(auth.protect);
 
 router.post(
   "/",
-  multerMiddleware.upload.array("photos"),
+  multer.upload.array("photos"),
+  validate(postSchema.createPostSchema),
   postController.createPost,
 );
 
-router.get("/followings-posts", postController.getMyFollowingsPosts);
+router.get(
+  "/followings-posts",
+  validate({ query: postSchema.getPostsQuerySchema }),
+  postController.getMyFollowingsPosts,
+);
 
 router.delete(
   "/delete-user-post/:postId",
-  authMiddleWare.restrictTo("ADMIN"),
+  auth.restrictTo("ADMIN"),
+  validate(postSchema.deleteUserPostSchema),
   postController.deleteUserPost,
 );
 
 router
   .route("/:id")
-  .patch(postController.editMyPost)
-  .delete(postController.deleteMyPost);
+  .patch(validate(postSchema.editPostSchema), postController.editMyPost)
+  .delete(validate(postSchema.deletePostSchema), postController.deleteMyPost);
 
-router.route("/:id/toggle-like").post(postController.toggleLike);
-router.route("/:id/comments").post(postController.addComment);
+router
+  .route("/:id/toggle-like")
+  .post(validate(postSchema.toggleLikeSchema), postController.toggleLike);
+router
+  .route("/:id/comments")
+  .post(validate(postSchema.addCommentSchema), postController.addComment);
 
 router
   .route("/:postId/comments/:commentId")
-  .patch(postController.editMyComment)
-  .delete(postController.deleteMyComment);
+  .patch(validate(postSchema.editCommentSchema), postController.editMyComment)
+  .delete(
+    validate(postSchema.deleteCommentSchema),
+    postController.deleteMyComment,
+  );
 
 module.exports = router;

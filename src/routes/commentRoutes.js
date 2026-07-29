@@ -1,13 +1,16 @@
 const { Router } = require("express");
-const authMiddleware = require("../middlewares/authMiddleware");
+const auth = require("../middlewares/auth");
 const commentController = require("../controllers/commentController");
+const validate = require("../middlewares/validate");
+const commentSchema = require("../schemas/commentSchemas");
 
 const router = Router();
 
 router.delete(
   "/delete-user-comment/:commentId",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("ADMIN"),
+  auth.protect,
+  auth.restrictTo("ADMIN"),
+  validate(commentSchema.deleteUserCommentSchema),
   commentController.deleteUserComment,
 );
 

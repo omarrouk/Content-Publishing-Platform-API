@@ -2,7 +2,7 @@ const express = require("express");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
 const commentRoutes = require("./routes/commentRoutes");
-const errorHandler = require("./middlewares/errorHandlerMiddlewar");
+const errorHandler = require("./middlewares/errorHandler");
 const AppError = require("./utils/AppError");
 
 const app = express();
