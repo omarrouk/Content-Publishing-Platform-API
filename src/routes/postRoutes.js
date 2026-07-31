@@ -4,6 +4,8 @@ const multer = require("../middlewares/multer");
 const postController = require("../controllers/postController");
 const validate = require("../middlewares/validate");
 const postSchema = require("../schemas/postSchemas");
+const likeSchema = require("../schemas/likeSchemas");
+const commentSchema = require("../schemas/commentSchemas");
 
 const router = Router();
 
@@ -42,16 +44,19 @@ router
 
 router
   .route("/:id/toggle-like")
-  .post(validate(postSchema.toggleLikeSchema), postController.toggleLike);
+  .post(validate(likeSchema.toggleLikeSchema), postController.toggleLike);
 router
   .route("/:id/comments")
-  .post(validate(postSchema.addCommentSchema), postController.addComment);
+  .post(validate(commentSchema.addCommentSchema), postController.addComment);
 
 router
   .route("/:postId/comments/:commentId")
-  .patch(validate(postSchema.editCommentSchema), postController.editMyComment)
+  .patch(
+    validate(commentSchema.editCommentSchema),
+    postController.editMyComment,
+  )
   .delete(
-    validate(postSchema.deleteCommentSchema),
+    validate(commentSchema.deleteCommentSchema),
     postController.deleteMyComment,
   );
 

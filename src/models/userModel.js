@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
+    minlength: 1,
+    maxlength: 30,
     unique: true,
     trim: true,
     lowercase: true,
@@ -26,6 +28,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8,
+    maxlength: 72,
     validate: [
       validator.isStrongPassword,
       "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and symbols",
@@ -37,14 +40,14 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
     minlength: 3,
-    maxlength: 30,
+    maxlength: 50,
   },
   lastName: {
     type: String,
     required: true,
     trim: true,
     minlength: 3,
-    maxlength: 30,
+    maxlength: 50,
   },
   profilePhoto: {
     type: String,

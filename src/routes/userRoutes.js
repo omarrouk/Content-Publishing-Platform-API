@@ -6,6 +6,7 @@ const auth = require("../middlewares/auth");
 const validate = require("../middlewares/validate");
 const authSchema = require("../schemas/authSchemas");
 const userSchema = require("../schemas/userSchemas");
+const followSchema = require("../schemas/followSchemas");
 
 const router = Router();
 
@@ -55,8 +56,8 @@ router.patch(
 
 router
   .route("/:id/follow")
-  .post(validate(userSchema.followUserSchema), userController.followUser)
-  .delete(validate(userSchema.followUserSchema), userController.unfollowUser);
+  .post(validate(followSchema.followUserSchema), userController.followUser)
+  .delete(validate(followSchema.followUserSchema), userController.unfollowUser);
 
 router.use(auth.restrictTo("ADMIN"));
 

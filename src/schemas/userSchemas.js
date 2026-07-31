@@ -7,10 +7,10 @@ const {
 } = require("./common");
 
 const updateProfileSchema = Joi.object({
-  username: stringFieldSchema("Username", { min: 3, max: 30 }),
+  username: stringFieldSchema("Username", { min: 1, max: 30 }),
   email: emailSchema.optional(),
-  firstName: stringFieldSchema("First name", { min: 2, max: 50 }),
-  lastName: stringFieldSchema("Last name", { min: 2, max: 50 }),
+  firstName: stringFieldSchema("First name", { min: 3, max: 50 }),
+  lastName: stringFieldSchema("Last name", { min: 3, max: 50 }),
 });
 
 const changePasswordSchema = Joi.object({
@@ -49,17 +49,10 @@ const deleteUserAccountSchema = {
   }),
 };
 
-const followUserSchema = {
-  params: Joi.object({
-    id: objectIdSchema,
-  }),
-};
-
 module.exports = {
   updateProfileSchema,
   changePasswordSchema,
   userIdSchema,
   updateUserRoleSchema,
   deleteUserAccountSchema,
-  followUserSchema,
 };
