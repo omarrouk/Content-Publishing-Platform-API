@@ -13,14 +13,27 @@ const validate = (schema) => (req, res, next) => {
     const parts = ["body", "params", "query"];
     const allErrors = [];
     const hasFileUpload = Boolean(req.file || req.files);
+    const isUpdateMethod = ["PATCH", "PUT"].includes(
+      String(req.method || "").toUpperCase(),
+    );
     const emptyBody =
       req.body === undefined ||
       req.body === null ||
       (typeof req.body === "object" && !Object.keys(req.body).length);
 
+    const hasParams = Boolean(req.params && Object.keys(req.params).length);
+    const hasQuery = Boolean(req.query && Object.keys(req.query).length);
+
     if (emptyBody && hasFileUpload) {
       req.body = {};
-    } else if (emptyBody && !hasFileUpload) {
+    } else if (
+      isUpdateMethod &&
+      schemaMap.body &&
+      emptyBody &&
+      !hasFileUpload &&
+      !hasParams &&
+      !hasQuery
+    ) {
       allErrors.push("Provide at least one field to update");
     }
 

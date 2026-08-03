@@ -9,8 +9,6 @@ const errorHandler = (err, req, res, next) => {
   err.status ||= "error";
 
   if (process.env.NODE_ENV === "development") {
-    console.log("error from development env");
-
     return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
@@ -19,12 +17,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (process.env.NODE_ENV === "production") {
-    console.log("error from production env");
-
-    let error = { ...err };
-    error.message = err.message;
-    error.name = err.name;
-    error.code = err.code;
+    let error = err;
 
     // 1. Intercept MongoDB/Mongoose Invalid ObjectID
     if (error.name === "CastError") {

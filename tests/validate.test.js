@@ -5,11 +5,12 @@ const validate = require("../src/middlewares/validate");
 const { signupSchema } = require("../src/schemas/authSchemas");
 const { updateProfileSchema } = require("../src/schemas/userSchemas");
 
-function createReq(body = {}) {
+function createReq(body = {}, method = "PATCH") {
   return {
     body,
     params: {},
     query: {},
+    method,
   };
 }
 
@@ -18,13 +19,16 @@ function createRes() {
 }
 
 test("validate middleware accepts valid signup payload", (t) => {
-  const req = createReq({
-    username: "jane",
-    email: "jane@example.com",
-    password: "password123",
-    firstName: "Jane",
-    lastName: "Doe",
-  });
+  const req = createReq(
+    {
+      username: "jane",
+      email: "jane@example.com",
+      password: "password123",
+      firstName: "Jane",
+      lastName: "Doe",
+    },
+    "POST",
+  );
   const res = createRes();
   let nextCalled = false;
 
@@ -43,11 +47,14 @@ test("validate middleware accepts valid signup payload", (t) => {
 });
 
 test("validate middleware rejects invalid signup payload", (t) => {
-  const req = createReq({
-    username: "j",
-    email: "not-an-email",
-    password: "short",
-  });
+  const req = createReq(
+    {
+      username: "j",
+      email: "not-an-email",
+      password: "short",
+    },
+    "POST",
+  );
   const res = createRes();
   let error;
 
@@ -87,13 +94,16 @@ test("validate middleware aggregates errors from multiple request parts", () => 
 });
 
 test("email validation returns a friendly message", () => {
-  const req = createReq({
-    username: "jane",
-    email: "not-an-email",
-    password: "password123",
-    firstName: "Jane",
-    lastName: "Doe",
-  });
+  const req = createReq(
+    {
+      username: "jane",
+      email: "not-an-email",
+      password: "password123",
+      firstName: "Jane",
+      lastName: "Doe",
+    },
+    "POST",
+  );
   const res = createRes();
   let error;
 
@@ -117,4 +127,22 @@ test("profile update accepts an empty body when a file is present", () => {
 
   assert.equal(nextCalled, true);
   assert.deepEqual(req.body, {});
+});
+
+test("query-only GET routes allow an empty body", () => {
+  const schema = {
+    query: Joi.object({
+      page: Joi.number().integer().min(1),
+    }),
+  };
+
+  const req = createReq({}, "GET");
+  const res = createRes();
+  let nextCalled = false;
+
+  validate(schema)(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, true);
 });

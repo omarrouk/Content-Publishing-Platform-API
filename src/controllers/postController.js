@@ -145,6 +145,7 @@ exports.deleteMyPost = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "post deleted successfully",
+      //TODO remove post
       post,
     });
   } catch (error) {
@@ -169,6 +170,7 @@ exports.toggleLike = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "like toggled successfully",
+      //TODO remove like
       like,
     });
   } catch (error) {
@@ -294,6 +296,7 @@ exports.deleteUserPost = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "post deleted successfully",
+      //TODO remove post
       post,
     });
   } catch (error) {

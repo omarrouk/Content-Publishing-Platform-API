@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/userModel");
 const jwtUtils = require("../utils/jwtUtils");
-const emailUtils = require("../utils/emaiUtils");
+const emailUtils = require("../utils/emailUtils");
 const AppError = require("../utils/AppError");
 
 exports.signup = async (req, res, next) => {
@@ -34,9 +34,12 @@ exports.signup = async (req, res, next) => {
 
     const token = jwtUtils.signToken({ id: user._id });
 
+    user.password = undefined;
+
     res.status(200).json({
       status: "success",
       message: "user created successfully",
+      //TODO remove token
       token,
       user,
     });
@@ -71,6 +74,7 @@ exports.login = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "user logged in successfully",
+      //TODO remove token
       token,
       user,
     });
@@ -96,6 +100,7 @@ exports.logout = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "logged out successfully",
+      //TODO remove user
       user,
     });
   } catch (error) {
@@ -130,7 +135,7 @@ exports.forgotMyPassword = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "reset token sent successfully",
-      //TODO remove resetToken
+      //TODO remove resetToken and user
       resetToken,
       user,
     });

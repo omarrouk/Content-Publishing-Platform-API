@@ -13,14 +13,16 @@ exports.getUserById = async (req, res, next) => {
       throw new AppError("provide a valid Id", 400);
     }
 
-    const user = await User.findById(userId).select("-email");
+    const user = await User.findById(userId).select(
+      "-email -loggedOutAt -resetPasswordToken -resetPasswordTokenExpiredAt -createdAt -deletedAt -__v",
+    );
     const posts = await Post.find({ publisher: userId }).sort({
       createdAt: -1,
     });
 
     res.status(200).json({
       status: "success",
-      message: "user account fitched successfully",
+      message: "user account fetched successfully",
       user,
       numOfPosts: posts.length,
       posts,
@@ -193,6 +195,7 @@ exports.deleteUserAccount = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "user deleted successfully",
+      //TODO remove user
       user,
     });
   } catch (error) {

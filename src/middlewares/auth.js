@@ -1,5 +1,6 @@
 const jwtUtils = require("../utils/jwtUtils");
 const User = require("../models/userModel");
+const AppError = require("../utils/AppError");
 
 exports.protect = async (req, res, next) => {
   let token;
@@ -7,7 +8,7 @@ exports.protect = async (req, res, next) => {
     token = req.headers.authorization.split(" ")[1];
   }
 
-  if (!token) throw new Error("missed token. please login");
+  if (!token) return next(new AppError("missed token. please login", 401));
 
   try {
     const decoded = jwtUtils.verifyToken(token);
@@ -15,33 +16,26 @@ exports.protect = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      throw new Error("user is no longer exists");
+      throw new AppError("user is no longer exists", 401);
     }
 
     if (user.loggedOutAt && user.loggedOutAt.getTime() / 1000 > decoded.iat) {
-      throw new Error("login and try again");
+      throw new AppError("login and try again", 401);
     }
 
     req.user = user;
 
-    next();
+    return next();
   } catch (error) {
-    return res.status(401).json({
-      status: "fail",
-      message: "an error when authorize the user",
-      error: error.message,
-    });
+    return next(error);
   }
 };
 
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role))
-      return res.status(400).json({
-        status: "failed",
-        message: "not allowed to complete this function",
-      });
+      return next(new AppError("not allowed to complete this function", 403));
 
-    next();
+    return next();
   };
 };

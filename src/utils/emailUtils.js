@@ -1,9 +1,16 @@
 const sgMail = require("@sendgrid/mail");
-const { TokenExpiredError } = require("jsonwebtoken");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const AppError = require("./AppError");
+
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 exports.sendEmail = async (emailObj) => {
   try {
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new AppError("SendGrid API key is not configured", 500);
+    }
+
     const msg = {
       to: emailObj.to,
       from: "orouk006@gmail.com",
@@ -17,6 +24,10 @@ exports.sendEmail = async (emailObj) => {
       console.error(error.response.body);
     }
 
-    throw new Error(error.message);
+    if (error.isOperational) {
+      throw error;
+    }
+
+    throw new AppError(error.message, 500);
   }
 };
